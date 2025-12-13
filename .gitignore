@@ -1,0 +1,15 @@
+# Maven
+target/
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# Test outputs
+test-output/
+reports/
+logs/
+
+# OS files
+.DS_Store
