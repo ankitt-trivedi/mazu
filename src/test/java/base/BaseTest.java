@@ -107,11 +107,19 @@ public class BaseTest {
 		log.info("Navigate to : " + url);
 	}
 
-	@AfterSuite
+	@AfterSuite(alwaysRun = true)
 	public void quit() {
-		page.close();
-		browser.close();
-		playwright.close();
+	    if (page != null) {
+	        page.close();
+	    }
+	    if (browser != null) {
+	        browser.close();
+	    }
+	    if (playwright != null) {
+	        playwright.close();
+	    }
+	}
+
 
 	}
-}
+
