@@ -25,7 +25,7 @@ public class LoginTest extends BaseTest {
 		type("password","Ankit@123");
 		click("Login2");
 		click("createinvoice");
-		type("invoicenumber","invoice17");
+		type("invoicenumber","invoice18");
 		click("billto");
 		click("billtooption");
 		click("itemname");
