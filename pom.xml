@@ -7,38 +7,25 @@
   <description>Fast, Easy &amp; Error-Free Billing for Businesses</description>
   
   <properties>
-  <maven.compiler.source>17</maven.compiler.source>
-  <maven.compiler.target>17</maven.compiler.target>
+  <maven.compiler.source>21</maven.compiler.source>
+  <maven.compiler.target>21</maven.compiler.target>
 </properties>
 
 
 <build>
     <plugins>
+
         <plugin>
             <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <version>3.13.0</version>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>3.2.5</version>
             <configuration>
-                <!-- Match your JDK version -->
-                <source>21</source>
-                <target>21</target>
-
-                <!-- Lombok as annotation processor -->
-                <annotationProcessorPaths>
-                    <path>
-                        <groupId>org.projectlombok</groupId>
-                        <artifactId>lombok</artifactId>
-                        <version>1.18.34</version>
-                    </path>
-                </annotationProcessorPaths>
-
-                <!-- Extra safety in case the JDK is strict with modules -->
-                <compilerArgs>
-                    <arg>--add-exports</arg>
-                    <arg>jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED</arg>
-                </compilerArgs>
+                <suiteXmlFiles>
+                    <suiteXmlFile>testng.xml</suiteXmlFile>
+                </suiteXmlFiles>
             </configuration>
         </plugin>
+
     </plugins>
 </build>
 
