@@ -1,125 +1,165 @@
 package base;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 
 import org.apache.log4j.PropertyConfigurator;
-
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeSuite;
 import org.testng.log4testng.Logger;
 
-import com.microsoft.playwright.Browser;
-import com.microsoft.playwright.BrowserType;
-
-import com.microsoft.playwright.Page;
-import com.microsoft.playwright.Playwright;
+import com.microsoft.playwright.*;
+import com.microsoft.playwright.options.WaitForSelectorState;
 
 import listeners.ExtentListeners;
 
 public class BaseTest {
 
-	private Playwright playwright;
-	public Browser browser;
-	public Page page;
+    private static ThreadLocal<Playwright> pw = new ThreadLocal<>();
+    private static ThreadLocal<Browser> br = new ThreadLocal<>();
+    private static ThreadLocal<Page> pg = new ThreadLocal<>();
 
-	private static ThreadLocal<Playwright> pw = new ThreadLocal<>();
-	private static ThreadLocal<Browser> br = new ThreadLocal<>();
-	private static ThreadLocal<Page> pg = new ThreadLocal<>();
+    private static Properties OR = new Properties();
+    private Logger log = Logger.getLogger(this.getClass());
+    
+    static {
+        try {
+            InputStream is = BaseTest.class
+                    .getClassLoader()
+                    .getResourceAsStream("properties/OR.properties");
 
-	private static Properties OR = new Properties();
-	private static FileInputStream fis;
-	private Logger log = Logger.getLogger(this.getClass());
+            if (is == null) {
+                throw new RuntimeException("❌ OR.properties NOT FOUND in classpath");
+            }
 
-	@BeforeSuite
-	public void setup() throws FileNotFoundException {
-		PropertyConfigurator.configure("./src/test/resources/properties/log4j.properties");
-		log.info("Test Execution started !!!");
+            OR.load(is);
+            System.out.println("✅ OR loaded keys: " + OR.keySet());
 
-		fis = new FileInputStream("./src/test/resources/properties/OR.properties");
-		try {
-			OR.load(fis);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
+        } catch (Exception e) {
+            throw new RuntimeException("❌ Failed to load OR.properties", e);
+        }
+    }
 
-	public void click(String locatorKey) {
+    // ================== SETUP ==================
 
-		try {
-			page.locator(OR.getProperty(locatorKey)).click();
-			log.info("clicking on an element :" + locatorKey);
-			ExtentListeners.getTest().info("clicking on an element :" + locatorKey);
+    @BeforeSuite
+    public void setup() {
+        PropertyConfigurator.configure("./src/test/resources/properties/log4j.properties");
+        log.info("Test Execution started !!!");
+    }
 
-		} catch (Throwable t) {
-			log.error("Error while clicking on element :" + t.getMessage());
-			ExtentListeners.getTest().fail("Error while clicking on element :" + t.getMessage());
-		}
+    // ================== SAFE GETTERS ==================
 
-	}
+    public Page getPage() {
+        return pg.get();
+    }
 
-	public void type(String locatorKey, String value) {
+    public Browser getBrowserInstance() {
+        return br.get();
+    }
 
-		try {
-			page.locator(OR.getProperty(locatorKey)).fill(value);
+    // ================== ACTIONS ==================
 
-			log.info("Typing`in an element :" + locatorKey + " and entered the value as " + value);
-			ExtentListeners.getTest().info("Typing in an element :" + locatorKey);
-		} catch (Throwable t) {
-			log.error("Error while Typing on element :" + t.getMessage());
-			ExtentListeners.getTest().fail("Error while typing on element :" + t.getMessage());
-		}
+    public void click(String locatorKey) {
+        String selector = OR.getProperty(locatorKey);
 
-	}
+        if (selector == null) {
+            throw new RuntimeException("❌ Locator not found: " + locatorKey);
+        }
 
-	public Browser getBrowser(String browserName) {
-		playwright = Playwright.create();
-		pw.set(playwright);
+        try {
+            Locator element = getPage().locator(selector);
 
-		switch (browserName) {
-		case "chrome":
-			log.info("Launching chrome browser");
-			return playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(false));
-		case "headless":
-			log.info("Launching headless mode");
-			return playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true));
-		case "firefox":
-			log.info("Launching firefox browser");
-			return playwright.firefox()
-					.launch(new BrowserType.LaunchOptions().setChannel("firefox").setHeadless(false));
-		case "webkit":
-			log.info("Launching safari browser");
-			return playwright.webkit().launch(new BrowserType.LaunchOptions().setHeadless(false));
-		default:
-			throw new IllegalArgumentException();
-		}
-	}
+            element.waitFor(new Locator.WaitForOptions()
+                    .setState(WaitForSelectorState.VISIBLE)
+                    .setTimeout(60000));
 
-	public void navigate(Browser browser, String url) {
-		this.browser = browser;
-		br.set(browser);
-		page = browser.newPage();
-		pg.set(page);
-		page.navigate(url);
-		log.info("Navigate to : " + url);
-	}
+            element.click();
 
-	@AfterSuite(alwaysRun = true)
-	public void quit() {
-	    if (page != null) {
-	        page.close();
-	    }
-	    if (browser != null) {
-	        browser.close();
-	    }
-	    if (playwright != null) {
-	        playwright.close();
-	    }
-	}
+            log.info("Clicking on element: " + locatorKey);
+            ExtentListeners.getTest().info("Click: " + locatorKey);
 
+        } catch (Throwable t) {
+            log.error("Error while clicking: " + locatorKey, t);
+            ExtentListeners.getTest().fail("Click failed: " + locatorKey);
+            throw new RuntimeException(t);
+        }
+    }
+    
 
-	}
+    public void type(String locatorKey, String value) {
+    	
+    	
+        String selector = OR.getProperty(locatorKey);
+        
+        if (selector == null) {
+            throw new RuntimeException("❌ Locator not found: " + locatorKey);
+        }
 
+        try {
+            getPage().locator(selector).fill(value);
+            log.info("Typing in element: " + locatorKey);
+            ExtentListeners.getTest().info("Type: " + locatorKey);
+        } catch (Throwable t) {
+            log.error("Error while typing: " + locatorKey, t);
+            ExtentListeners.getTest().fail("Type failed: " + locatorKey);
+            throw new RuntimeException(t); // ✅ VERY IMPORTANT
+        }
+    }
+
+    // ================== BROWSER ==================
+
+    public Browser getBrowser(String browserName) {
+        Playwright playwright = Playwright.create();
+        pw.set(playwright);
+
+        Browser browser;
+
+        switch (browserName.toLowerCase()) {
+            case "chrome":
+                log.info("Launching chrome browser");
+                browser = playwright.chromium()
+                        .launch(new BrowserType.LaunchOptions().setHeadless(false));
+                break;
+
+            case "headless":
+                browser = playwright.chromium()
+                        .launch(new BrowserType.LaunchOptions().setHeadless(true));
+                break;
+
+            case "firefox":
+                browser = playwright.firefox()
+                        .launch(new BrowserType.LaunchOptions().setHeadless(false));
+                break;
+
+            case "webkit":
+                browser = playwright.webkit()
+                        .launch(new BrowserType.LaunchOptions().setHeadless(false));
+                break;
+
+            default:
+                throw new IllegalArgumentException("Invalid browser: " + browserName);
+        }
+
+        br.set(browser);
+        return browser;
+    }
+
+    public void navigate(Browser browser, String url) {
+        Page page = browser.newPage();
+        pg.set(page);
+        page.navigate(url);
+        log.info("Navigate to: " + url);
+    }
+
+    // ================== TEARDOWN ==================
+
+    @AfterSuite(alwaysRun = true)
+    public void quit() {
+        if (pg.get() != null) pg.get().close();
+        if (br.get() != null) br.get().close();
+        if (pw.get() != null) pw.get().close();
+    }
+}

@@ -7,9 +7,10 @@
   <name>mazu</name>
   <description>Fast, Easy &amp; Error-Free Billing for Businesses</description>
   
-  <properties>
-  <maven.compiler.source>21</maven.compiler.source>
-  <maven.compiler.target>21</maven.compiler.target>
+<properties>
+    <maven.compiler.source>21</maven.compiler.source>
+    <maven.compiler.target>21</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 </properties>
 
 
@@ -89,7 +90,28 @@
     <artifactId>log4j-core</artifactId>
     <version>2.23.1</version>
 </dependency>
+
+<!-- Source: https://mvnrepository.com/artifact/io.cucumber/cucumber-java -->
+<dependency>
+    <groupId>io.cucumber</groupId>
+    <artifactId>cucumber-java</artifactId>
+    <version>7.34.2</version>
+    <scope>compile</scope>
+</dependency>
+
+<!-- Source: https://mvnrepository.com/artifact/io.cucumber/cucumber-testng -->
+<dependency>
+    <groupId>io.cucumber</groupId>
+    <artifactId>cucumber-testng</artifactId>
+    <version>7.34.2</version>
+    <scope>compile</scope>
+</dependency>
+
   </dependencies>
+  
+
+  
+  
   
   
   
