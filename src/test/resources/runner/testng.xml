@@ -2,9 +2,9 @@
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.1.dtd">
 
 <suite name="Mazu Test Suite">
-    <listeners>
+    <listeners> 
         <listener class-name="listeners.ExtentListeners"/>
-    </listeners>
+    </listeners>      
 
     <test name="Login Tests">
         <classes>
