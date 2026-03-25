@@ -205,7 +205,10 @@ public class LoginSteps extends BaseTest{
    @Then("generate AI script")
    public void generateAIScript() {
        generateFullScriptWithAI();
+       System.
    }
+
+   
   }
    
    
