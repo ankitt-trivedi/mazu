@@ -2,13 +2,14 @@ package steps;
 
 
 
-import java.util.regex.Pattern;
+
+import com.microsoft.playwright.Page;
 
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.Locator;
 
 import com.microsoft.playwright.options.AriaRole;
-import com.microsoft.playwright.options.WaitForSelectorState;
+
 
 import base.BaseTest;
 import io.cucumber.java.en.Given;
@@ -24,11 +25,12 @@ public class LoginSteps extends BaseTest{
 		navigate(browser, "https://app.mazu.in/login");
     }	
     
-    @Then("create invoice")
+    @SuppressWarnings("deprecation")
+	@Then("create invoice")
     public void create_invoice(){
 
        clickByRole(AriaRole.TEXTBOX, "Mobile / Email");
-       fillByRole(AriaRole.TEXTBOX, "Mobile / Email", "8");
+       /*fillByRole(AriaRole.TEXTBOX, "Mobile / Email", "8");
 
        fillByLocator("#userName", "8960341098");
        getPage().locator("#userName").press("Enter");
@@ -75,7 +77,107 @@ public class LoginSteps extends BaseTest{
        fillByRole(AriaRole.TEXTBOX, "Add Quantity", "1");
 
        clickByRole(AriaRole.BUTTON, "Add Item");
-       clickByRole(AriaRole.BUTTON, "Create Invoice");
+       clickByRole(AriaRole.BUTTON, "Create Invoice");*/
+       
+    // Login
+    // Login
+       fillByLocator("#userName", "8960341098");
+       getPage().locator("#userName").press("Enter");
+
+       fillByRole(AriaRole.TEXTBOX, "Password", "Ankit@123");
+       pressByRole(AriaRole.TEXTBOX, "Password", "Enter");
+
+       waitForUiStable();
+       Locator addBtn = getPage().getByLabel("add");
+
+    // force click (important for MUI)
+    addBtn.waitFor();
+    addBtn.click(new Locator.ClickOptions().setForce(true));
+
+    // 🔥 WAIT FOR INVOICE PAGE (REAL FIX)
+    getPage().waitForSelector("text=Create Invoice",
+            new Page.WaitForSelectorOptions().setTimeout(15000));
+
+    // optional stabilize
+    waitForUiStable();
+
+       Locator customerInput = getPage()
+    		    .locator("input[placeholder='Name / GSTIN / Mobile']");
+
+    		customerInput.waitFor();
+    		customerInput.click();
+    		customerInput.fill("Account");
+
+    		// MUI dropdown
+    		Locator dropdown = getPage()
+    		    .locator("div[role='presentation']")
+    		    .last();
+
+    		dropdown.waitFor();
+
+    		// click option
+    		dropdown.locator("li")
+    		    .filter(new Locator.FilterOptions().setHasText("Account Two"))
+    		    .first()
+    		    .click();
+
+    		waitForUiStable();
+
+    		// ✅ validate
+    		if (!customerInput.inputValue().toLowerCase().contains("account")) {
+    		    throw new RuntimeException("Customer selection failed");
+    		}
+       
+    		Locator itemInput = getPage()
+    			    .locator("input[placeholder='Search or Create Item (CTRL + I)']");
+
+    			// wait for input
+    			itemInput.waitFor();
+
+    			// focus
+    			itemInput.click();
+
+    			// 🔥 type slowly (IMPORTANT)
+    			itemInput.type("Item", new Locator.TypeOptions().setDelay(100));
+
+    			// 🔥 handle MUI dropdown (PORTAL)
+    			Locator itemDropdown = getPage()
+    			    .locator("div[role='presentation']")
+    			    .last();
+
+    			itemDropdown.waitFor();
+
+    			// 🔥 CLICK exact item (NO keyboard)
+    			itemDropdown.locator("li")
+    			    .filter(new Locator.FilterOptions().setHasText("Item Eight"))
+    			    .first()
+    			    .click();
+
+    			// stabilize
+    			waitForUiStable();
+
+       fillByRole(AriaRole.TEXTBOX, "Add Quantity", "1");
+
+       clickByRole(AriaRole.BUTTON, "Add Item");
+
+       // Wait for item added
+       getPage().locator("text=Item Eight").waitFor();
+
+       // Create Invoice
+       Locator createBtn = getPage().getByRole(
+           AriaRole.BUTTON,
+           new Page.GetByRoleOptions().setName("Create Invoice")
+       );
+
+       createBtn.waitFor();
+
+       getPage().waitForTimeout(500);
+
+       if (!createBtn.isEnabled()) {
+           throw new RuntimeException("Create Invoice button disabled");
+       }
+
+       createBtn.click();
     }
 	   
    @Then("create receipt")
